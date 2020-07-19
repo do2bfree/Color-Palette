@@ -4,13 +4,20 @@ const sliders = document.querySelectorAll('input[type="range"]');
 const currentHexes = document.querySelectorAll(".color h2");
 const popup = document.querySelector(".copy-container");
 const adjustButton = document.querySelectorAll(".adjust");
+const lockButton = document.querySelectorAll(".lock");
 const closeAdjustments = document.querySelectorAll(".close-adjustment");
 const sliderContainers = document.querySelectorAll(".sliders");
 let initialColors;
 
 //Event Listeners
+generateBtn.addEventListener("click", randomColors);
 sliders.forEach((slider) => {
 	slider.addEventListener("input", hslControls);
+});
+lockButton.forEach((button, index) => {
+	button.addEventListener("click", (e) => {
+		lockLayer(e, index);
+	});
 });
 
 colorDivs.forEach((div, index) => {
@@ -50,7 +57,12 @@ function randomColors() {
 		const hexText = div.children[0];
 		const randomColor = generateHex();
 
-		initialColors.push(chroma(randomColor).hex());
+		if (div.classList.contains("locked")) {
+			initialColors.push(hexText.innerText);
+			return;
+		} else {
+			initialColors.push(chroma(randomColor).hex());
+		}
 
 		div.style.backgroundColor = randomColor;
 		hexText.innerText = randomColor;
@@ -66,6 +78,10 @@ function randomColors() {
 		colorizeSliders(color, hue, brightness, saturation);
 	});
 	resetInputs();
+	adjustButton.forEach((button, index) => {
+		checkTextContrast(initialColors[index], button);
+		checkTextContrast(initialColors[index], lockButton[index]);
+	});
 }
 
 function checkTextContrast(color, text) {
@@ -166,5 +182,16 @@ function openAdjustmentPanel(index) {
 }
 function closeAdjustmentPanel(index) {
 	sliderContainers[index].classList.remove("active");
+}
+function lockLayer(e, index) {
+	const lockSVG = e.target.children[0];
+	const activeBg = colorDivs[index];
+	activeBg.classList.toggle("locked");
+
+	if (lockSVG.classList.contains("fa-lock-open")) {
+		e.target.innerHTML = '<i class="fas fa-lock"></i>';
+	} else {
+		e.target.innerHTML = '<i class="fas fa-lock-open"></i>';
+	}
 }
 randomColors();
