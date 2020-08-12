@@ -233,7 +233,14 @@ function savePalette(e) {
 	});
 
 	//Generate Object
-	let paletteNr = savedPalettes.length;
+	let paletteNr;
+	const paletteObjects = JSON.parse(localStorage.getItem('palettes'));
+	if (paletteObjects) {
+		paletteNr = paletteObjects.length;
+	} else {
+		paletteNr = savedPalettes.length;
+	}
+
 	const paletteObj = { name, colors, nr: paletteNr };
 	savedPalettes.push(paletteObj);
 	//Save to local
@@ -269,7 +276,7 @@ function savePalette(e) {
 			checkTextContrast(color, text);
 			updateText(index);
 		});
-		libraryInputUpdate();
+		resetInputs();
 	});
 
 	//Append to library
@@ -300,7 +307,52 @@ function closeLibrary() {
 	libraryContainer.classList.remove('active');
 	popup.classList.remove('active');
 }
+function getLocal() {
+	if (localStorage.getItem('palettes') === null) {
+		localPalettes = [];
+	} else {
+		const paletteObjects = JSON.parse(localStorage.getItem('palettes'));
+		savedPalettes = [...paletteObjects];
+		paletteObjects.forEach((paletteObj) => {
+			const palette = document.createElement('div');
+			palette.classList.add('custom-palette');
+			const title = document.createElement('h4');
+			title.innerText = paletteObj.name;
+			const preview = document.createElement('div');
+			preview.classList.add('small-preview');
+			paletteObj.colors.forEach((smallColor) => {
+				const smallDiv = document.createElement('div');
+				smallDiv.style.backgroundColor = smallColor;
+				preview.appendChild(smallDiv);
+			});
+			const paletteBtn = document.createElement('button');
+			paletteBtn.classList.add('pick-palette-btn');
+			paletteBtn.classList.add(paletteObj.nr);
+			paletteBtn.innerText = 'Select';
 
-function libraryInputUpdate() {}
+			//Select from library
+			paletteBtn.addEventListener('click', (e) => {
+				closeLibrary();
+				const paletteIndex = e.target.classList[1];
+				initialColors = [];
+				paletteObjects[paletteIndex].colors.forEach((color, index) => {
+					initialColors.push(color);
+					colorDivs[index].style.backgroundColor = color;
+					const text = colorDivs[index].children[0];
+					checkTextContrast(color, text);
+					updateText(index);
+				});
+				resetInputs();
+			});
 
+			//Append to library
+			palette.appendChild(title);
+			palette.appendChild(preview);
+			palette.appendChild(paletteBtn);
+			libraryContainer.children[0].appendChild(palette);
+		});
+	}
+}
+
+getLocal();
 randomColors();
